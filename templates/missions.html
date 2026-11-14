@@ -1,0 +1,105 @@
+{% extends "app/plugins/templates/base.html" %}
+{% load i18n %}
+
+{% block extra-headers %}
+<link rel="stylesheet" href="{{ plugin_url }}style.css?v={{ v }}">
+{% endblock %}
+
+{% block content %}
+<div class="mm-app mm-list-page">
+    <div class="mm-shell">
+        <header class="mm-appbar">
+            <div class="mm-appbar-titles">
+                <h1 class="mm-title">{% trans "Crowd Missions" %}</h1>
+            </div>
+            {% if can_create %}
+            <a class="btn btn-primary" href="{{ plugin_url }}new/"><i class="fa fa-plus" aria-hidden="true"></i> {% trans "New mission" %}</a>
+            {% endif %}
+        </header>
+
+        <main class="mm-body">
+            {% if missions %}
+            <section aria-labelledby="mm-yours">
+                <h2 class="mm-section-title{% if not joinable %} sr-only{% endif %}" id="mm-yours">{% trans "Your missions" %}</h2>
+                <ul class="mm-feed">
+                    {% for m in missions %}
+                    <li class="mm-tile theme-border-highlight">
+                        <div class="mm-tile-head">
+                            <span class="mm-tile-icon theme-background-highlight" aria-hidden="true"><i class="fa fa-map-marked-alt"></i></span>
+                            <div class="mm-tile-heading">
+                                <h3 class="mm-tile-title"><a class="mm-tile-link" href="{{ plugin_url }}{{ m.id }}/">{{ m.name }}</a></h3>
+                            </div>
+                        </div>
+                        <div class="progress mm-progress" role="progressbar" aria-label="{% trans 'Approved cells' %}" aria-valuemin="0" aria-valuemax="{{ m.total }}" aria-valuenow="{{ m.approved }}">
+                            <div class="progress-bar progress-bar-success" style="width: {{ m.percent }}%"></div>
+                        </div>
+                        <ul class="mm-tile-facts">
+                            <li title="{% trans 'Approved cells' %}"><i class="fa fa-check-circle" aria-hidden="true"></i><span class="sr-only">{% trans "Approved cells" %}:</span> {{ m.approved }} / {{ m.total }}</li>
+                            {% if m.mine %}<li title="{% trans 'Your cells' %}"><i class="fa fa-user" aria-hidden="true"></i><span class="sr-only">{% trans "Your cells" %}:</span> {{ m.mine }}</li>{% endif %}
+                            <li class="text-muted" title="{% trans 'Created' %}"><i class="fa fa-calendar-alt" aria-hidden="true"></i><span class="sr-only">{% trans "Created" %}:</span> {{ m.created_at|slice:":10" }}</li>
+                        </ul>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% elif not joinable %}
+            <div class="mm-empty">
+                <p class="text-muted">{% trans "No missions yet" %}</p>
+            </div>
+            {% endif %}
+
+            {% if joinable %}
+            <section aria-labelledby="mm-open">
+                <h2 class="mm-section-title" id="mm-open">{% trans "Open missions you can join" %}</h2>
+                <ul class="mm-feed">
+                    {% for m in joinable %}
+                    <li class="mm-tile theme-border-highlight">
+                        <div class="mm-tile-head">
+                            <span class="mm-tile-icon theme-background-highlight" aria-hidden="true"><i class="fa fa-map-marked-alt"></i></span>
+                            <div class="mm-tile-heading">
+                                <h3 class="mm-tile-title">{{ m.name }}</h3>
+                            </div>
+                        </div>
+                        <div class="progress mm-progress" role="progressbar" aria-label="{% trans 'Approved cells' %}" aria-valuemin="0" aria-valuemax="{{ m.total }}" aria-valuenow="{{ m.approved }}">
+                            <div class="progress-bar progress-bar-success" style="width: {{ m.percent }}%"></div>
+                        </div>
+                        <ul class="mm-tile-facts">
+                            <li title="{% trans 'Approved cells' %}"><i class="fa fa-check-circle" aria-hidden="true"></i><span class="sr-only">{% trans "Approved cells" %}:</span> {{ m.approved }} / {{ m.total }}</li>
+                            <li class="text-muted" title="{% trans 'Created' %}"><i class="fa fa-calendar-alt" aria-hidden="true"></i><span class="sr-only">{% trans "Created" %}:</span> {{ m.created_at|slice:":10" }}</li>
+                        </ul>
+                        <div class="mm-tile-actions">
+                            <button type="button" class="btn btn-primary" data-join="{{ m.id }}" data-toggle="tooltip" title="{% trans 'Adds you to the project as a pilot.' %}"><i class="fa fa-sign-in-alt" aria-hidden="true"></i> {% trans "Join mission" %}</button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="alert alert-warning mm-text" id="mm-join-message" role="alert" hidden></div>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+</div>
+
+{% if joinable %}
+<script>
+window.MM = { pluginUrl: "{{ plugin_url }}", apiUrl: "/api{{ plugin_url }}" };
+</script>
+<script src="{{ plugin_url }}common.js?v={{ v }}"></script>
+<script>
+MM.tips(document);
+Array.prototype.forEach.call(document.querySelectorAll("[data-join]"), function(b){
+    b.onclick = function(){
+        b.disabled = true;
+        MM.api("POST", "missions/" + b.getAttribute("data-join") + "/join", {}).then(function(r){
+            window.location.href = MM.pluginUrl + r.id + "/";
+        }).catch(function(e){
+            b.disabled = false;
+            var m = document.getElementById("mm-join-message");
+            m.textContent = e.message;
+            m.hidden = false;
+        });
+    };
+});
+</script>
+{% endif %}
+{% endblock %}

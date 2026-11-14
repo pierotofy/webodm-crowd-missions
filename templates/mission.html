@@ -1,0 +1,62 @@
+{% extends "app/plugins/templates/base.html" %}
+{% load i18n %}
+
+{% block extra-headers %}
+{% for css in map_css %}<link rel="stylesheet" href="{{ css }}">{% endfor %}
+<link rel="stylesheet" href="{{ plugin_url }}style.css?v={{ v }}">
+{% endblock %}
+
+{% block content %}
+<div class="mm-app mm-mission-page">
+    <div class="mm-shell" id="mm-shell" data-view="overview">
+        <header class="mm-appbar">
+            <a class="btn btn-default mm-icon-btn" href="{{ plugin_url }}" title="{% trans 'Back to Crowd Missions' %}" aria-label="{% trans 'Back to Crowd Missions' %}"><i class="fa fa-arrow-left" aria-hidden="true"></i></a>
+            <div class="mm-appbar-titles">
+                <h1 class="mm-title" id="mm-title">{% trans "Mission" %}</h1>
+                <p class="mm-subtitle text-muted" id="mm-subtitle"></p>
+            </div>
+        </header>
+
+        <nav class="mm-nav theme-secondary theme-border-highlight" aria-label="{% trans 'Mission sections' %}">
+            <div class="mm-tabs" role="tablist">
+                <button type="button" role="tab" class="mm-tab" id="mm-tab-overview" data-view="overview" aria-controls="mm-panel-overview"><span class="mm-tab-icon"><i class="fa fa-th-large" aria-hidden="true"></i></span><span class="mm-tab-label">{% trans "Overview" %}</span></button>
+                <button type="button" role="tab" class="mm-tab" id="mm-tab-cell" data-view="cell" aria-controls="mm-panel-cell"><span class="mm-tab-icon"><i class="fa fa-vector-square" aria-hidden="true"></i></span><span class="mm-tab-label">{% trans "Cell" %}</span></button>
+                <button type="button" role="tab" class="mm-tab" id="mm-tab-people" data-view="people" aria-controls="mm-panel-people"><span class="mm-tab-icon"><i class="fa fa-users" aria-hidden="true"></i></span><span class="mm-tab-label">{% trans "People" %}</span></button>
+                <button type="button" role="tab" class="mm-tab" id="mm-tab-processing" hidden data-view="processing" aria-controls="mm-panel-processing"><span class="mm-tab-icon"><i class="fa fa-cogs" aria-hidden="true"></i></span><span class="mm-tab-label">{% trans "Processing" %}</span></button>
+            </div>
+        </nav>
+
+        <div class="mm-body">
+            <div class="mm-map" id="mm-map"></div>
+            <section class="mm-pane" id="mm-panel-overview" role="tabpanel" aria-labelledby="mm-tab-overview" data-panel="overview" tabindex="-1">
+                <h2 class="sr-only">{% trans "Overview" %}</h2>
+                <div id="mm-head"><p class="text-muted">{% trans "Loading mission..." %}</p></div>
+            </section>
+            <section class="mm-pane" id="mm-panel-cell" role="tabpanel" aria-labelledby="mm-tab-cell" data-panel="cell" tabindex="-1">
+                <h2 class="mm-pane-title">{% trans "Cell" %}</h2>
+                <div id="mm-cell"></div>
+            </section>
+            <section class="mm-pane" id="mm-panel-people" role="tabpanel" aria-labelledby="mm-tab-people" data-panel="people" tabindex="-1">
+                <h2 class="sr-only">{% trans "People" %}</h2>
+                <div id="mm-people"></div>
+            </section>
+            <section class="mm-pane" id="mm-panel-processing" hidden role="tabpanel" aria-labelledby="mm-tab-processing" data-panel="processing" tabindex="-1">
+                <h2 class="sr-only">{% trans "Processing" %}</h2>
+                <div id="mm-manage"></div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script>
+window.MM = {
+    pluginUrl: "{{ plugin_url }}",
+    apiUrl: "/api{{ plugin_url }}",
+    missionId: {{ mission_id }},
+    presets: {{ presets|safe }},
+    basemaps: {{ basemaps|safe }}
+};
+</script>
+<script src="{{ plugin_url }}common.js?v={{ v }}"></script>
+<script src="{{ plugin_url }}mission.js?v={{ v }}"></script>
+{% endblock %}

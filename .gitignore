@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+dist/
+*.zip
+*.sha256
+.test-accounts
+public/_test/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

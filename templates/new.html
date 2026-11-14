@@ -1,0 +1,123 @@
+{% extends "app/plugins/templates/base.html" %}
+{% load i18n %}
+
+{% block extra-headers %}
+{% for css in map_css %}<link rel="stylesheet" href="{{ css }}">{% endfor %}
+<link rel="stylesheet" href="{{ plugin_url }}style.css?v={{ v }}">
+{% endblock %}
+
+{% block content %}
+<div class="mm-app mm-new-page">
+    <div class="mm-shell">
+        <header class="mm-appbar">
+            <a class="btn btn-default mm-icon-btn" href="{{ plugin_url }}" title="{% trans 'Back to Crowd Missions' %}" aria-label="{% trans 'Back to Crowd Missions' %}"><i class="fa fa-arrow-left" aria-hidden="true"></i></a>
+            <div class="mm-appbar-titles">
+                <h1 class="mm-title">{% trans "New mission" %}</h1>
+            </div>
+        </header>
+
+        <form class="mm-body" id="mm-form" novalidate>
+            <div class="mm-panes">
+            <section class="mm-pane mm-pane-details" aria-labelledby="mm-details-title">
+                <h2 class="sr-only" id="mm-details-title">{% trans "Mission" %}</h2>
+                <div class="form-group">
+                    <label for="mm-name">{% trans "Mission name" %}</label>
+                    <input type="text" class="form-control" id="mm-name" maxlength="255" autofocus>
+                </div>
+                <div class="form-group">
+                    <div class="mm-label"><label for="mm-project">{% trans "Project" %}</label><button type="button" class="mm-info" data-toggle="tooltip" title="{% trans 'Pilots get access through this project.' %}" aria-label="{% trans 'Pilots get access through this project.' %}"><i class="fa fa-info-circle" aria-hidden="true"></i></button></div>
+                    <select class="form-control" id="mm-project">
+                        {% if can_add_project %}<option value="new">{% trans "New project..." %}</option>{% endif %}
+                        {% for p in projects %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <fieldset class="mm-sub">
+                    <legend class="mm-sub-title">{% trans "People" %}</legend>
+                    <div id="mm-people"></div>
+                </fieldset>
+            </section>
+
+            <section class="mm-pane mm-pane-flight" aria-labelledby="mm-flight-title">
+                <h2 class="sr-only" id="mm-flight-title">{% trans "Area and flight" %}</h2>
+                <fieldset class="mm-sub mm-sub-first">
+                    <legend class="mm-sub-title mm-label">{% trans "Area to map" %} <button type="button" class="mm-info" data-toggle="tooltip" title="{% trans 'Draw on the map or import a GeoJSON or KML file.' %}" aria-label="{% trans 'Draw on the map or import a GeoJSON or KML file.' %}"><i class="fa fa-info-circle" aria-hidden="true"></i></button></legend>
+                    <p class="help-block" id="mm-draw-help" hidden></p>
+                    <div class="mm-buttons">
+                        <button type="button" class="btn btn-default" id="mm-draw"><i class="fa fa-draw-polygon" aria-hidden="true"></i> {% trans "Draw" %}</button>
+                        <button type="button" class="btn btn-default" id="mm-finish" hidden><i class="fa fa-check" aria-hidden="true"></i> {% trans "Finish" %}</button>
+                        <label class="btn btn-default" for="mm-file"><i class="fa fa-file-import" aria-hidden="true"></i> {% trans "Import" %}</label>
+                        <input type="file" id="mm-file" accept=".geojson,.json,.kml" class="mm-hidden-file">
+                        <button type="button" class="btn btn-default" id="mm-clear" hidden><i class="fa fa-times" aria-hidden="true"></i> {% trans "Clear" %}</button>
+                    </div>
+                </fieldset>
+
+                <div class="form-group">
+                    <div class="mm-label"><label for="mm-cell-size">{% trans "Cell size" %}</label><button type="button" class="mm-info" data-toggle="tooltip" title="{% trans 'One pilot flies each cell. Pick a size one battery can cover.' %}" aria-label="{% trans 'One pilot flies each cell. Pick a size one battery can cover.' %}"><i class="fa fa-info-circle" aria-hidden="true"></i></button></div>
+                    <select class="form-control" id="mm-cell-size">
+                        <option value="100">100 × 100 m</option>
+                        <option value="150">150 × 150 m</option>
+                        <option value="200" selected>200 × 200 m</option>
+                        <option value="250">250 × 250 m</option>
+                        <option value="300">300 × 300 m</option>
+                        <option value="400">400 × 400 m</option>
+                        <option value="500">500 × 500 m</option>
+                    </select>
+                </div>
+
+                <fieldset class="mm-sub">
+                    <legend class="mm-sub-title mm-label">{% trans "Flight settings" %} <button type="button" class="mm-info" data-toggle="tooltip" title="{% trans 'Used in every flight plan.' %}" aria-label="{% trans 'Used in every flight plan.' %}"><i class="fa fa-info-circle" aria-hidden="true"></i></button></legend>
+                    <div class="form-group">
+                        <div class="mm-label"><label for="mm-drone">{% trans "Drone" %}</label><button type="button" class="mm-info" data-toggle="tooltip" title="{% trans 'Sets the camera used to space photos.' %}" aria-label="{% trans 'Sets the camera used to space photos.' %}"><i class="fa fa-info-circle" aria-hidden="true"></i></button></div>
+                        <select class="form-control" id="mm-drone"></select>
+                    </div>
+                    <div class="mm-row">
+                        <div class="form-group">
+                            <div class="mm-label"><label for="mm-altitude">{% trans "Altitude (m)" %}</label><button type="button" class="mm-info" data-toggle="tooltip" title="{% trans 'Height above takeoff. Lower gives more detail but needs more photos.' %}" aria-label="{% trans 'Height above takeoff. Lower gives more detail but needs more photos.' %}"><i class="fa fa-info-circle" aria-hidden="true"></i></button></div>
+                            <input type="number" class="form-control" id="mm-altitude" min="10" max="500" step="1" value="80">
+                        </div>
+                        <div class="form-group">
+                            <div class="mm-label"><label for="mm-angle">{% trans "Direction (°)" %}</label><button type="button" class="mm-info" data-toggle="tooltip" title="{% trans 'Heading of the flight lines. 0° is north.' %}" aria-label="{% trans 'Heading of the flight lines. 0° is north.' %}"><i class="fa fa-info-circle" aria-hidden="true"></i></button></div>
+                            <input type="number" class="form-control" id="mm-angle" min="0" max="359" step="1" value="0">
+                        </div>
+                    </div>
+                    <div class="mm-row">
+                        <div class="form-group">
+                            <div class="mm-label"><label for="mm-front">{% trans "Front overlap" %}</label><button type="button" class="mm-info" data-toggle="tooltip" title="{% trans 'Overlap between photos along a line. Higher improves results.' %}" aria-label="{% trans 'Overlap between photos along a line. Higher improves results.' %}"><i class="fa fa-info-circle" aria-hidden="true"></i></button></div>
+                            <select class="form-control" id="mm-front"></select>
+                        </div>
+                        <div class="form-group">
+                            <div class="mm-label"><label for="mm-side">{% trans "Side overlap" %}</label><button type="button" class="mm-info" data-toggle="tooltip" title="{% trans 'Overlap between neighboring lines. Higher improves results.' %}" aria-label="{% trans 'Overlap between neighboring lines. Higher improves results.' %}"><i class="fa fa-info-circle" aria-hidden="true"></i></button></div>
+                            <select class="form-control" id="mm-side"></select>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <p class="mm-summary" id="mm-summary" aria-live="polite"></p>
+                <p class="mm-path-stats" id="mm-path" aria-live="polite"></p>
+                <div class="alert alert-warning" id="mm-warn" role="status" hidden></div>
+                <div class="alert alert-warning" id="mm-message" role="alert" hidden></div>
+
+                <div class="mm-buttons mm-commit">
+                    <button type="submit" class="btn btn-primary" id="mm-create"><i class="fa fa-check" aria-hidden="true"></i> {% trans "Create mission" %}</button>
+                    <a class="btn btn-default" href="{{ plugin_url }}"><i class="fa fa-times" aria-hidden="true"></i> {% trans "Cancel" %}</a>
+                </div>
+            </section>
+            </div>
+
+            <div class="mm-map" id="mm-map"></div>
+        </form>
+    </div>
+</div>
+
+<script>
+window.MM = {
+    pluginUrl: "{{ plugin_url }}",
+    apiUrl: "/api{{ plugin_url }}",
+    presets: {{ presets|safe }},
+    me: "{{ request.user.username|escapejs }}",
+    basemaps: {{ basemaps|safe }}
+};
+</script>
+<script src="{{ plugin_url }}common.js?v={{ v }}"></script>
+<script src="{{ plugin_url }}new.js?v={{ v }}"></script>
+{% endblock %}
