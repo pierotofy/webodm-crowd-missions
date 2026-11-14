@@ -1,8 +1,8 @@
 {
 	"name": "Crowd Missions",
 	"webodmMinVersion": "4.0.0",
-	"description": "plugin for multi-pilot mission planning and flying. Split an area into cells, fly, upload and review, then process everything as one task.",
-	"version": "0.8.0",
+	"description": "Multi-pilot mission planning and flying. Split an area into cells, fly, upload and review, then process everything as one task.",
+	"version": "0.8.1",
 	"author": "Piero Toffanin",
 	"email": "pt@masseranolabs.com",
 	"repository": "https://github.com/pierotofy/webodm-crowd-missions",
